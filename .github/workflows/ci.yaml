@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11] # Python versions to test on
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "::add-path::${{HOME}}/.local/bin"
+
+    - name: Install project dependencies and run tests
+      run: |
+        for project in edc_backend edc_frontend; do
+          cd $project
+          poetry install
+          poetry run pytest
+          cd ..
+        done
